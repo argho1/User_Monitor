@@ -1,16 +1,39 @@
-from django.shortcuts import render
+import logging
+from django.db import transaction
 from django.contrib.auth import authenticate
-
 from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
-
 from .serializers import RegisterSerializer, LoginSerializer
+from auth_service_api.rabbitmq_publisher import RabbitMQPublisher
+
+logger = logging.getLogger(__name__)
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
+
+    @transaction.atomic # to ensure atomic db transactions
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            try:
+                publisher = RabbitMQPublisher()
+                message = {
+                    'user_id' : user.id,
+                    'email' : user.email,
+                    'username' : user.username,
+                }
+                publisher.publish(message)
+                publisher.close()
+            except Exception as e:
+                logger.error(f"Error publishing to RabbitMQ: {e}")
+            return Response({'detail': 'User registered successfully'}, 
+                            status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
@@ -45,6 +68,5 @@ class ValidateTokenView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        print(request.headers)
         return Response({'detail':'Token is valid'},
                         status=status.HTTP_200_OK)
