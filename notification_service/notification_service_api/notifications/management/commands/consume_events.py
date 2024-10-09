@@ -9,10 +9,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
         channel = connection.channel()
-        channel.queue_declare(queue='user_registered')
+        channel.queue_declare(queue='user_registered', durable=True)
 
         def callback(ch, method, properties, body):
-            handle_user_registered_event.delay(body.decode())
+                try:
+                    handle_user_registered_event.delay(body.decode())
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                except Exception as e:
+                    print(f'Error: {e}')
+                    ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
         channel.basic_consume(queue='user_registered', on_message_callback=callback, auto_ack=False)
         print(' [*] waiting for message. To exit press CTRL+C ')
