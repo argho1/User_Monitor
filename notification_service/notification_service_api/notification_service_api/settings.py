@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -135,7 +139,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 # SendGrid Configuration
-SENDGRID_API_KEY = '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'
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = 'sinhaargho@gmail.com'  # Replace with your email
 
 # Twilio Configuration
@@ -151,3 +155,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
+
+print(SENDGRID_API_KEY)
