@@ -1,0 +1,2 @@
+Hello {{username|safe}},
+Thanks for signing up to our website!
