@@ -167,3 +167,4 @@ cython_debug/
 
 *env_*
 .env
+testwithme_*
