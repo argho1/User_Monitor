@@ -1,0 +1,16 @@
+## Run Celery
+
+    celery -A NAMEOFINTERFACE worker --loglevel=info
+
+    celery -A notification_service_api worker --loglevel=info
+
+    [Wondows OS]
+    pip install eventlet
+    celery -A notification_service_api worker --loglevel=info -P eventlet 
+    or
+    celery -A notification_service_api worker -l info --pool=solo
+
+## Run RabbitMQ (On Windows)
+
+#Run:
+
