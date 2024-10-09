@@ -166,3 +166,4 @@ cython_debug/
 # Custom
 
 *env_*
+.env
