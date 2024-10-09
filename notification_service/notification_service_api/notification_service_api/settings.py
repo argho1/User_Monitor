@@ -155,5 +155,3 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
 }
-
-print(SENDGRID_API_KEY)
