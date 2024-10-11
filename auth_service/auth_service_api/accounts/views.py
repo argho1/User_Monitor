@@ -7,8 +7,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.throttling import UserRateThrottle
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer
 from auth_service_api.rabbitmq_publisher import RabbitMQPublisher
+from .models import CustomUser
 
 logger = logging.getLogger(__name__)
 
@@ -26,15 +27,16 @@ class RegisterView(generics.CreateAPIView):
         if serializer.is_valid():
             user = serializer.save()
             try:
-                publisher = RabbitMQPublisher()
+                # publisher = RabbitMQPublisher()
                 message = {
                     'user_id' : user.id,
+                    'phone_number': user.phone_number,
                     'email' : user.email,
                     'username' : user.username,
-                    'phone_number': user.phone_number,
                 }
-                publisher.publish(message)
-                publisher.close()
+                with RabbitMQPublisher(queue_name='user_registered') as publisher:
+                    publisher.publish(message)
+
             except Exception as e:
                 logger.error(f"Error publishing to RabbitMQ: {e}")
                 # comment out below lines if publishing is not critical
@@ -82,3 +84,10 @@ class ValidateTokenView(APIView):
     def get(self, request):
         return Response({'detail':'Token is valid'},
                         status=status.HTTP_200_OK)
+    
+class CustomUserListView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [AllowAny]
+
+
