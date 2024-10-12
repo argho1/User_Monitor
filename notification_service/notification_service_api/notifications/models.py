@@ -10,4 +10,3 @@ class UserNotificationPreferance(models.Model):
 
 
 
-
