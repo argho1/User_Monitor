@@ -4,7 +4,11 @@ from django.conf import settings
 from . import config
 
 class RabbitMQPublisher:
-    def __init__(self):
+    def __init__(self, queue_name):
+        self.queue_name = queue_name
+
+
+    def __enter__(self):
         # credentials = pika.PlainCredentials(config.RABBITMQ_USER, config.RABBITMQ_PASSWORD)
         parameters = pika.ConnectionParameters(
             host=config.RABBITMQ_HOST,
@@ -15,12 +19,14 @@ class RabbitMQPublisher:
         )
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
-        self.channel.queue_declare(queue=config.RABBITMQ_QUEUE, durable=True)
+        self.channel.queue_declare(queue=self.queue_name, durable=True)
+        return self
+        
 
     def publish(self, message):
         self.channel.basic_publish(
             exchange='',
-            routing_key=config.RABBITMQ_QUEUE,
+            routing_key=self.queue_name,
             body=json.dumps(message),
             properties=pika.BasicProperties(
                 delivery_mode=2,
@@ -28,7 +34,7 @@ class RabbitMQPublisher:
             )
         )
     
-    def close(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         self.connection.close()
 
 
