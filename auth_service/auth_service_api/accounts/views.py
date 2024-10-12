@@ -1,5 +1,6 @@
 import logging
 from django.db import transaction
+from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import authenticate
 from rest_framework import generics, status
 from rest_framework.views import APIView
@@ -57,7 +58,7 @@ class LoginView(generics.GenericAPIView):
         user = authenticate(
             username = serializer.validated_data['username'],
             password = serializer.validated_data['password'],
-            phone_number = serializer.validated_data['phone_number'],
+            # phone_number = serializer.validated_data['phone_number'],
         )
 
         if user:
@@ -89,5 +90,12 @@ class CustomUserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+        'is_staff': ['exact'],  # Filtering by exact match for 'is_staff'
+        'date_joined': ['gte', 'lte'],  # Filtering by date range (greater than, less than)
+        'last_login': ['gte', 'lte', 'isnull'],  # Filtering by last login range
+    }
+
 
 
