@@ -27,9 +27,9 @@ def send_email(to_email, subject, content, attachment=None):
     try:
         sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
         sg.send(message)
-        print(f"Email sent to {to_email}")
+        print(f"\nEmail sent to {to_email}\n")
     except Exception as e:
-        print(f"Error sending email:{e}")
+        print(f"\nError sending email:{e}\n")
 
 
 def send_sms(to_number, message):
@@ -46,7 +46,7 @@ def send_sms(to_number, message):
 
 
 def get_report_file(report_id):
-    report_service_url = f'http://127.0.0.1:7000/reports/{report_id}/download/'
+    report_service_url = f'{settings.REPORTING_API_URL}{report_id}/download/'
 
     try:
         response = requests.get(report_service_url)
@@ -58,6 +58,3 @@ def get_report_file(report_id):
     except Exception as e:
         print(f'Error fetching report:{e}')
         return None
-
-
-
