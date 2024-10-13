@@ -8,15 +8,17 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.throttling import UserRateThrottle
-from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer
 from auth_service_api.rabbitmq_publisher import RabbitMQPublisher
 from .models import CustomUser
+from .utils import authenticate_with_multiple_fields
+from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer
 
 logger = logging.getLogger(__name__)
 
 # To prevent brute-force or abuse
 class BurstRateThrottle(UserRateThrottle):
     rate = '5/min'
+
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -49,18 +51,20 @@ class RegisterView(generics.CreateAPIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
+    throttle_classes = [BurstRateThrottle]
 
     def post(self, requset):
         serializer = self.get_serializer(data=requset.data)
         serializer.is_valid(raise_exception=True)
-        user = authenticate(
-            username = serializer.validated_data['username'],
-            password = serializer.validated_data['password'],
-            # phone_number = serializer.validated_data['phone_number'],
-        )
+    
+        identifier = serializer.validated_data['identifier']  
+        password = serializer.validated_data['password']
 
+        user = authenticate_with_multiple_fields(identifier, password)
+    
         if user:
             refresh = RefreshToken.for_user(user)
             # Create the Response instance first
@@ -79,13 +83,15 @@ class LoginView(generics.GenericAPIView):
             'detail':'Invalid Credentials'
         }, status=status.HTTP_401_UNAUTHORIZED)
 
-class ValidateTokenView(APIView):
+
+class ValidateTokenView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         return Response({'detail':'Token is valid'},
                         status=status.HTTP_200_OK)
-    
+
+
 class CustomUserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
