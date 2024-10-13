@@ -1,4 +1,6 @@
+import os
 import requests
+from django.conf import settings
 from datetime import datetime
 from django.conf import settings
 from reportlab.lib.pagesizes import letter
@@ -6,10 +8,10 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 
 def get_user_activity_data():
-    token = 'token'
-    # headers = {'Authorization':f'Bearer {token}'}
-    # response = requests.get('http://localhost:5000/auth/user/', headers=headers)
-    response = requests.get('http://localhost:5000/auth/users/')
+    headers = {
+        'Authorization': f'Bearer {get_service_token()}'
+    }
+    response = requests.get(settings.AUTH_LIST_USERS_URL, headers=headers)
 
     if response.status_code == 200:
         return response.json()
@@ -59,5 +61,29 @@ def generate_pdf_report(user_data, weather_data=None):
 
     return buffer.getvalue()
 
+def get_service_token():
+    data = {
+        'identifier': settings.SERVICE_ACCOUNT_USERNAME,
+        'password': settings.SERVICE_ACCOUNT_PASSWORD,
+    }
 
+    response = requests.post(settings.AUTH_LOGIN_URL, data=data)
+    if response.status_code == 200:
+        return response.json()['access']
+    else:
+        print(f'\nAUTHENTICATON FAILED while getting user data!!\n {response.status_code}')
+        return None
+    
+def get_superusers_and_staff():
+    auth_service_url = settings.AUTH_LIST_USERS_URL
+    headers = {
+        'Authorization': f'Bearer {get_service_token()}'
+    }
+
+    response = requests.get(auth_service_url, headers=headers, params={'is_staff': True})
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return []
 
