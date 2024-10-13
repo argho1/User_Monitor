@@ -1,34 +1,38 @@
-# from celery import shared_task
-# from .utils import get_user_activity_data, get_weather_data, generate_pdf_report
-# from .models import Report
-# from django.core.files.base import ContentFile
-# from django.conf import settings
-# import datetime
+import requests
+from celery import shared_task
+from django.conf import settings
+from django.core.files.base import ContentFile
+from report_service_api.rabbitmq_publisher import RabbitMQPublisher
 
-# @shared_task
-# def generate_scheduled_report():
-#     user_data = get_user_activity_data()
-#     print(f'\n{user_data}\n')
-#     # weather_data = get_weather_data()
+from .models import Report
+from .utils import generate_pdf_report, get_superusers_and_staff, get_user_activity_data
 
-#     # Generating report
-#     pdf_content = generate_pdf_report(user_data)
+@shared_task(name='reports.tasks.generate_scheduled_report_n_send')
+def generate_scheduled_report_n_send(frequency):
+    # Fetching superusers and staff
+    users_to_email = get_superusers_and_staff()
 
-#     # Save report to the database
-#     report = Report(title='Daily Report')
-#     report.file.save(f'daily_report_{datetime.date.today()}.pdf', ContentFile(pdf_content))
-#     report.save()
+    # Fetching data for all users
+    user_data = get_user_activity_data()
 
-#     try:
-#         with RabbitMQPublisher() as publisher:
-#             message = {
-#                 'report_id': report.id,
-#                 'title': report.title,
-#                 'created_at': str(report.created_at),
-#             }
-#             publisher.publish(message, queue_name='report_generated')
-#     except Exception as e:
-#         logger.error(f'Error publishing to RabbitMQ: {e}')
+    # Generating report
+    report_content = generate_pdf_report(user_data)
 
+    # Save report
+    report = Report(title=f'{frequency.capitalize()} User Report')
+    report.file.save(f'{frequency}_user_report.pdf', ContentFile(report_content))
+    report.save()
+
+    # # Prepare message
+    # message = {
+    #     'name': f'{frequency.capitalize()} User Report',
+    #     'report_id': report.id,
+    #     'email': [user['email'] for user in users_to_email],
+    #     'report_type': frequency,
+    #     'status': 'success',
+    # }
+
+    # publisher = RabbitMQPublisher(queue_name='report_generated')
+    # publisher.publish(message)
 
 
