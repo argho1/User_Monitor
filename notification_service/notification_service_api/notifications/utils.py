@@ -7,7 +7,7 @@ from twilio.rest import Client
 
 def send_email(to_email, subject, content, attachment=None):
     message = Mail(
-        from_email="sinhaargho@gmail.com",
+        from_email=settings.FROM_EMAIL,
         to_emails=to_email,
         subject=subject,
         plain_text_content=content,
@@ -17,7 +17,7 @@ def send_email(to_email, subject, content, attachment=None):
         encoded_file = base64.b64encode(attachment).decode('utf-8')
         attachment_file = Attachment(
             FileContent(encoded_file),
-            FileName('report.pdf'),
+            FileName('Report.pdf'),
             FileType('application/pdf'),
             Disposition('attachment')
         )
