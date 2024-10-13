@@ -140,7 +140,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 
 # SendGrid Configuration
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
-DEFAULT_FROM_EMAIL = 'sinhaargho@gmail.com'
+FROM_EMAIL = os.getenv('FROM_EMAIL')
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = 'your_twilio_account_sid'
@@ -158,3 +158,4 @@ REST_FRAMEWORK = {
 
 # API URLS
 REPORTING_API_URL = os.getenv('REPORTING_API_URL')
+
