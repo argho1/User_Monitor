@@ -21,7 +21,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
     
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
+    identifier = serializers.CharField()  # Accepts phone, email, or username
     password = serializers.CharField(write_only=True, required=True)
 
 class CustomUserSerializer(serializers.ModelSerializer):
