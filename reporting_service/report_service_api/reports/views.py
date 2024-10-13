@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
-# from .tasks import generate_scheduled_report
 from .models import Report
 from .serializers import ReportSerializer
 from report_service_api.rabbitmq_publisher import RabbitMQPublisher
@@ -12,13 +11,10 @@ from django.http import HttpResponse, Http404
 from datetime import datetime
 from django.core.files.base import ContentFile
 
-class GenerateReportView(APIView):
+class GenerateReportView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # user_id = request.user.id
-
-        # generate_scheduled_report.delay()
         user_data = get_user_activity_data()
         pdf_buffer = generate_pdf_report(user_data)
 
@@ -44,16 +40,17 @@ class GenerateReportView(APIView):
         }
         with RabbitMQPublisher(queue_name='report_generated') as publisher:
             publisher.publish(message)
-        return Response({'detail':'Report generation started.'},
+        return Response({'detail':'Generating report and sending email'},
                         status=status.HTTP_202_ACCEPTED)
-    
+
+
 class ReportListView(generics.ListAPIView):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
     permission_classes = [AllowAny]
 
 
-class ReportDetailView(generics.DestroyAPIView):
+class ReportDetailView(generics.RetrieveAPIView):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
     permission_classes = [AllowAny]
