@@ -9,8 +9,12 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
+from celery.schedules import crontab
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -128,13 +132,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ## Custom fields
 
-# Celery settings
-CELERY_BROKER_URL = 'amqp://guest@localhost//'
-CELERY_RESULT_BACKEND = 'rpc://'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
+# RabbitMQ settings
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT'))
+RABBITMQ_USER = os.getenv('RABBITMQ_USER')
+RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
+
+# API URLS
+AUTH_LIST_USERS_URL = os.getenv('AUTH_LIST_USERS_URL')
+AUTH_LOGIN_URL = os.getenv('AUTH_LOGIN_URL')
+AUTH_VALIDATE_URL = os.getenv('AUTH_VALIDATE_URL')
+
+# Service Account
+SERVICE_ACCOUNT_USERNAME = os.getenv('SERVICE_ACCOUNT_USERNAME')
+SERVICE_ACCOUNT_PASSWORD = os.getenv('SERVICE_ACCOUNT_PASSWORD')
+
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -146,6 +158,39 @@ REST_FRAMEWORK = {
     ),
 }
 
+
+
+# Celery settings
+CELERY_BROKER_URL = 'amqp://guest@localhost//'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'
+
+CELERY_BEAT_SCHEDULE = {
+    'generate_daily_report': {
+        'task': 'reports.tasks.generate_scheduled_report_n_send',
+        'schedule': crontab(hour=10, minute=59),  # Every day at midnight
+        # 'schedule': crontab(minute="*"), # Every Minute for testing
+        'args': ('daily',)
+    },
+    'generate_weekly_report': {
+        'task': 'reports.tasks.generate_scheduled_report_n_send',
+        'schedule': crontab(day_of_week='sunday', hour=12, minute=18),  # Every Sunday at midnight
+        # 'schedule': crontab(minute="*"),  # Every Minute for testing
+        'args': ('weekly',)
+    },
+    'generate_monthly_report': {
+        'task': 'reports.tasks.generate_scheduled_report_n_send',
+        'schedule': crontab(day_of_month=13, hour=11, minute=1),  # First day of the month at midnight
+        'args': ('monthly',),
+        # 'options': {
+        #     'queue': 'report_tasks',  # Ensure the task is sent to the correct queue
+        #     'routing_key': 'report.scheduled',
+        # },
+    },
+}
+
 # For fetching weather data
 WEATHER_API_KEY = 'key'
-
