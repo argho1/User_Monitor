@@ -1,0 +1,6 @@
+## Celery commands
+
+# Run celery worker for scheduled reporting
+celery -A report_service_api worker --pool=gevent --loglevel=info --hostname=scheduled_worker
+
+celery -A report_service_api beat --loglevel=INFO
