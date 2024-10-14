@@ -93,7 +93,7 @@ celery -A report_service_api worker --loglevel=info --hostname=scheduled_worker
 Run celery worker in a serperate terminal within the 'myenv' environment:
 **On Windows:**
 ```bash
-celery -A notification_service_api worker --loglevel=info -P eventlet
+celery -A report_service_api beat --loglevel=INFO
 ```
 ---
 
