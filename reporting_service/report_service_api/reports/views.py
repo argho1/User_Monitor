@@ -10,11 +10,14 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, Http404
 from datetime import datetime
 from django.core.files.base import ContentFile
+from .permissions import HasReportAccessPermission
 
 class GenerateReportView(generics.RetrieveAPIView):
+    # permission_classes = [AllowAny, HasReportAccessPermission]
     permission_classes = [AllowAny]
 
     def post(self, request):
+        user = self.request.user
         user_data = get_user_activity_data()
         pdf_buffer = generate_pdf_report(user_data)
 
@@ -30,14 +33,27 @@ class GenerateReportView(generics.RetrieveAPIView):
         report.file.save(filename, ContentFile(pdf_buffer))
         report.save()
 
+        # message = {
+        #     'name': 'report_generated',
+        #     'report_id': report.id,
+        #     # 'generated_at': str(datetime.now()),
+        #     'user_id': user.id,
+        #     'email': user.email,
+        #     'phone_number': user.phone_number,
+        #     'report_type': 'daily_summary',
+        #     'status': 'success',
+        # }
         message = {
             'name': 'report_generated',
             'report_id': report.id,
             # 'generated_at': str(datetime.now()),
+            'user_id':26,
             'email': 'argho1@live.com',
+            'phone_number': '8972198989',
             'report_type': 'daily_summary',
             'status': 'success',
         }
+
         with RabbitMQPublisher(queue_name='report_generated') as publisher:
             publisher.publish(message)
         return Response({'detail':'Generating report and sending email'},
