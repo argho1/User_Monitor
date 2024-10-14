@@ -6,6 +6,8 @@ from django.conf import settings
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
+from jose import jwt
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 def get_user_activity_data():
     headers = {
@@ -19,16 +21,6 @@ def get_user_activity_data():
         print('\nAUTHENTICATON FAILED while getting user data!!\n')
         return None
 
-def get_weather_data(location='New York'):
-    api_key = settings.WEATHER_API_KEY
-    url = f'http://api.weatherapi.com/v1/current.json?key={api_key}&q={location}'
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print('\nAUTHENTICATON FAILED while getting Weather data!!\n')
-        return None
 
 def generate_pdf_report(user_data, weather_data=None):
     buffer = BytesIO()
@@ -61,19 +53,22 @@ def generate_pdf_report(user_data, weather_data=None):
 
     return buffer.getvalue()
 
+
 def get_service_token():
     data = {
-        'identifier': settings.SERVICE_ACCOUNT_USERNAME,
+        'username': settings.SERVICE_ACCOUNT_USERNAME,
         'password': settings.SERVICE_ACCOUNT_PASSWORD,
     }
 
     response = requests.post(settings.AUTH_LOGIN_URL, data=data)
     if response.status_code == 200:
+        # print(response.json()['access'])
         return response.json()['access']
     else:
         print(f'\nAUTHENTICATON FAILED while getting user data!!\n {response.status_code}')
         return None
-    
+
+
 def get_superusers_and_staff():
     auth_service_url = settings.AUTH_LIST_USERS_URL
     headers = {
@@ -86,4 +81,5 @@ def get_superusers_and_staff():
         return response.json()
     else:
         return []
+
 
