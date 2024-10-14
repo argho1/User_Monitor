@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
@@ -172,4 +173,41 @@ SERVICE_ACCOUNT_USERNAME = os.getenv('SERVICE_ACCOUNT_USERNAME')
 SERVICE_ACCOUNT_PASSWORD = os.getenv('SERVICE_ACCOUNT_PASSWORD')
 
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} [{name}:{lineno}] {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/warnings_and_errors.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'WARNING',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+
+    'loggers': {
+        'authentication': {
+            'handlers': ['file', 'console'],
+            'level': 'WARNING',  # Capture warnings and above
+            'propagate': False,
+        },
+    },
+}
 
