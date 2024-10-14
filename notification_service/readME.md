@@ -80,7 +80,3 @@ celery -A notification_service_api worker --loglevel=info -P eventlet
 celery -A notification_service_api worker --loglevel=info
 ```
 
-The server will start at `http://127.0.0.1:8000/`.
-
----
-
