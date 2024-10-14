@@ -1,7 +1,6 @@
 import pika
 import json
 from django.conf import settings
-from . import config
 
 class RabbitMQPublisher:
     def __init__(self, queue_name):
@@ -9,10 +8,10 @@ class RabbitMQPublisher:
 
 
     def __enter__(self):
-        # credentials = pika.PlainCredentials(config.RABBITMQ_USER, config.RABBITMQ_PASSWORD)
+        # credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASSWORD)
         parameters = pika.ConnectionParameters(
-            host=config.RABBITMQ_HOST,
-            # port=config.RABBITMQ_PORT,
+            host=settings.RABBITMQ_HOST,
+            # port=settings.RABBITMQ_PORT,
             # credentials=credentials,
             heartbeat=600, # Heartbeat in sec
             blocked_connection_timeout=300, # Timeout when blocked in sec
