@@ -38,6 +38,7 @@ def handle_report_generated_event(message):
     phone_number = '+91'+event.get('phone_number')
     user_id = event.get('user_id')
 
+    # get report file
     report_content = get_report_file(report_id)
     if not report_content:
         return
