@@ -7,5 +7,5 @@ send scheduled scheduled and on demand reports.
 ## About The Project
 
 <a href="https://github.com/argho1/User_Monitor/blob/main/Notification_N_RrportGeneration_Digram.png">
-  <img src="Notification_N_RrportGeneration_Digram.png" alt="Notification_N_RrportGeneration_Digram" width="210" height="297">
+  <img src="Notification_N_RrportGeneration_Digram.png" alt="Notification_N_RrportGeneration_Digram" width="1210" height="1297">
 </a>
