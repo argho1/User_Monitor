@@ -19,8 +19,16 @@ python -m venv myenv
 This command creates a virtual environment named `myenv`.
 
 ---
+## 3. Run one instance of RabbiteMQ server if not already running.
 
-## 3. Activate the Virtual Environment
+**On Windows: Run as admin**
+
+  ```bash
+  rabbitmq-server.bat
+  ```
+
+
+## 4. Activate the Virtual Environment
 
 **On Windows:**
 
@@ -28,7 +36,7 @@ This command creates a virtual environment named `myenv`.
   myenv\Scripts\activate
   ```
 
-## 4. Installing requirments.txt
+## 5. Installing requirments.txt
 
 **On Windows:**
 
@@ -36,7 +44,7 @@ This command creates a virtual environment named `myenv`.
   pip install -r requirments.txt
   ```
 
-## 5. Navigate to the `manage.py` File
+## 6. Navigate to the `manage.py` File
 
 Change your directory to the location of the `manage.py` file:
 
@@ -46,7 +54,7 @@ cd path/to/your/project/
 
 ---
 
-## 6. Run the Development Server
+## 7. Run the Development Server
 
 Start the Django development server by running:
 
@@ -56,6 +64,37 @@ python manage.py runserver 7000
 
 The server will start at `http://127.0.0.1:7000/`.
 
+---
+
+## 8. Run the Consume Event
+
+Run consume_event in a serperate terminal within the 'myenv' environment::
+
+
+```bash
+python manage.py consume_events
+```
+
+## 9. Run the Celery Worker
+
+Run celery worker with node name as 'scheduled_worker' in a serperate terminal within the 'myenv' environment:
+
+**On Windows:**
+```bash
+celery -A report_service_api worker --pool=gevent --loglevel=info --hostname=scheduled_worker
+```
+**On Linux:** [Untested]
+```bash
+celery -A report_service_api worker --loglevel=info --hostname=scheduled_worker
+```
+
+## 10. Run the Celery Beats
+
+Run celery worker in a serperate terminal within the 'myenv' environment:
+**On Windows:**
+```bash
+celery -A notification_service_api worker --loglevel=info -P eventlet
+```
 ---
 
 # API Endpoints
