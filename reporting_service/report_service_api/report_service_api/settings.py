@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+from datetime import timedelta
 import os
 from pathlib import Path
 from celery.schedules import crontab
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt',
+
     'reports',
 ]
 
@@ -151,14 +154,22 @@ SERVICE_ACCOUNT_PASSWORD = os.getenv('SERVICE_ACCOUNT_PASSWORD')
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',  # For simplicity; replace with JWT authentication
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
-    ),
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
 }
 
-
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    # 'ALGORITHM': 'RS256',
+    # 'PRIVATE_KEY_PATH' : os.getenv('PRIVATE_KEY_PATH'),
+    # 'PUBLIC_KEY_PATH' : os.getenv('PUBLIC_KEY_PATH'),
+}
 
 # Celery settings
 CELERY_BROKER_URL = 'amqp://guest@localhost//'
@@ -184,13 +195,8 @@ CELERY_BEAT_SCHEDULE = {
     'generate_monthly_report': {
         'task': 'reports.tasks.generate_scheduled_report_n_send',
         'schedule': crontab(day_of_month=13, hour=11, minute=1),  # First day of the month at midnight
+        # 'schedule': crontab(minute="*"),  # Every Minute for testing
         'args': ('monthly',),
-        # 'options': {
-        #     'queue': 'report_tasks',  # Ensure the task is sent to the correct queue
-        #     'routing_key': 'report.scheduled',
-        # },
+  
     },
 }
-
-# For fetching weather data
-WEATHER_API_KEY = 'key'
