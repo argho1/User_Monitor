@@ -101,7 +101,7 @@ class ValidateTokenView(generics.RetrieveAPIView):
 class CustomUserListView(generics.ListAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'is_staff': ['exact'],  # Filtering by exact match for 'is_staff'
@@ -114,7 +114,7 @@ class CustomUserListView(generics.ListAPIView):
 class UpdateNotificationPreferencesView(generics.RetrieveUpdateAPIView):
     queryset = NotificationPreferences.objects.all()
     serializer_class = NotificationPreferencesSerializer
-    # permission_classes = [AllowAny, IsAdminOrOwner]
+    permission_classes = [AllowAny, IsAdminOrOwner]
 
     def get_object(self):
         user = self.request.user
