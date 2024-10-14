@@ -4,6 +4,9 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
 from django.conf import settings
 from twilio.rest import Client
+# import logging 
+
+# logger = logging.getLogger('authentication')
 
 def send_email(to_email, subject, content, attachment=None):
     message = Mail(
@@ -65,11 +68,10 @@ def get_service_token():
         'username': settings.SERVICE_ACCOUNT_USERNAME,
         'password': settings.SERVICE_ACCOUNT_PASSWORD,
     }
-    print(data)
 
     response = requests.post(settings.AUTH_LOGIN_URL, data=data)
     if response.status_code == 200:
-        print(response.json()['access'])
+        # print(response.json()['access'])
         return response.json()['access']
     else:
         print(f'\nAUTHENTICATON FAILED while getting user data!!\n {response.status_code}')
