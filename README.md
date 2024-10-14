@@ -6,6 +6,6 @@ send scheduled scheduled and on demand reports.
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-<a href="[https://github.com/argho1/stickeyBusiness/stickeyBusiness_logo.png](https://github.com/argho1/User_Monitor/blob/main/User_Monitor_Notification_N_RrportGeneration.png)">
-  <img src="stickeyBusiness_screenshot.png" alt="Logo" >
+<a href="https://github.com/argho1/stickeyBusiness/stickeyBusiness_logo.png">
+  <img src="stickeyBusiness_screenshot.png" alt="Logo" width="210" height="297">
 </a>
