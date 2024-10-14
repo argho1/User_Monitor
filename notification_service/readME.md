@@ -57,3 +57,30 @@ python manage.py runserver 8000
 The server will start at `http://127.0.0.1:8000/`.
 
 ---
+
+## 7. Run the Consume Event
+
+Run consume_event in a serperate terminal within the 'myenv' environment::
+
+
+```bash
+python manage.py consume_events
+```
+
+## 8. Run the Celery Worker
+
+Run celery worker in a serperate terminal within the 'myenv' environment:
+
+**On Windows:**
+```bash
+celery -A notification_service_api worker --loglevel=info -P eventlet
+```
+**On Linux:** [Untested]
+```bash
+celery -A notification_service_api worker --loglevel=info
+```
+
+The server will start at `http://127.0.0.1:8000/`.
+
+---
+
