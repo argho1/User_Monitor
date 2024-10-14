@@ -27,22 +27,22 @@ def send_email(to_email, subject, content, attachment=None):
     try:
         sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
         sg.send(message)
-        print(f"\nEmail sent to {to_email}\n")
+        print(f"\n\nEmail sent to {to_email}\n\n")
     except Exception as e:
-        print(f"\nError sending email:{e}\n")
+        print(f"\n\nError sending email:{e}\n\n")
 
 
 def send_sms(to_number, message):
-    client = Client(settings.TWILO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     try:
         client.messages.create(
             body=message,
             from_=settings.TWILIO_PHONE_NUMBER,
             to=to_number
         )
-        print(f"SMS send to {to_number}")
+        print(f"\n\nSMS send to {to_number}\n\n")
     except Exception as e:
-        print(f'Error sending SMS: {e}')
+        print(f'\n\nError sending SMS: {e}\n\n')
 
 
 def get_report_file(report_id):
@@ -58,3 +58,41 @@ def get_report_file(report_id):
     except Exception as e:
         print(f'Error fetching report:{e}')
         return None
+    
+
+def get_service_token():
+    data = {
+        'username': settings.SERVICE_ACCOUNT_USERNAME,
+        'password': settings.SERVICE_ACCOUNT_PASSWORD,
+    }
+    print(data)
+
+    response = requests.post(settings.AUTH_LOGIN_URL, data=data)
+    if response.status_code == 200:
+        print(response.json()['access'])
+        return response.json()['access']
+    else:
+        print(f'\nAUTHENTICATON FAILED while getting user data!!\n {response.status_code}')
+        return None
+
+
+def get_user_notification_perference(user_id):
+
+    token = get_service_token()
+
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    }
+
+    try:
+        response = requests.get(f'{settings.AUTH_SERVICE_URL}user/{user_id}/notification/', 
+                                headers=headers, 
+                                timeout=5)
+        response.raise_for_status()
+        perference = response.json()
+        return perference
+    except requests.RequestException as e:
+        print(f'Failed to fetch perference : {requests.status_codes}')
+        return None
+
