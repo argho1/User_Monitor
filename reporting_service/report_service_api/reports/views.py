@@ -17,6 +17,10 @@ class GenerateReportView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+
+        # date_str = request.data.get('date')  # Expected format: "YYYY-MM-DD"
+        # time_str = request.data.get('time')  # Expected format: "HH:MM"
+
         user = self.request.user
         user_data = get_user_activity_data()
         pdf_buffer = generate_pdf_report(user_data)
