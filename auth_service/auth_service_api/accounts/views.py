@@ -9,9 +9,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.throttling import UserRateThrottle
 from auth_service_api.rabbitmq_publisher import RabbitMQPublisher
-from .models import CustomUser
-from .utils import authenticate_with_multiple_fields
-from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer
+from .models import CustomUser, NotificationPreferences
+# from .utils import authenticate_with_multiple_fields
+from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer, NotificationPreferencesSerializer
+from rest_framework.exceptions import PermissionDenied
+from .permissions import IsAdminOrOwner
+from rest_framework_simplejwt.views import TokenObtainPairView
+from .serializers import CustomTokenObtainPairSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -52,44 +56,46 @@ class RegisterView(generics.CreateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(generics.GenericAPIView):
-    serializer_class = LoginSerializer
-    throttle_classes = [BurstRateThrottle]
+# class LoginView(generics.GenericAPIView):
+#     serializer_class = LoginSerializer
+#     throttle_classes = [BurstRateThrottle]
 
-    def post(self, requset):
-        serializer = self.get_serializer(data=requset.data)
-        serializer.is_valid(raise_exception=True)
+#     def post(self, requset):
+#         serializer = self.get_serializer(data=requset.data)
+#         serializer.is_valid(raise_exception=True)
     
-        identifier = serializer.validated_data['identifier']  
-        password = serializer.validated_data['password']
+#         identifier = serializer.validated_data['identifier']  
+#         password = serializer.validated_data['password']
 
-        user = authenticate_with_multiple_fields(identifier, password)
+#         user = authenticate_with_multiple_fields(identifier, password)
     
-        if user:
-            refresh = RefreshToken.for_user(user)
-            # Create the Response instance first
-            response = Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
-            ##COOKITE based auth if needed
-            ##Set the cookie on the Response instance
-            # response.set_cookie(key='jwt',
-            #                     value=str(refresh.access_token), 
-            #                     httponly=True)
-            return response
+#         if user:
+#             refresh = RefreshToken.for_user(user)
+#             # Create the Response instance first
+#             response = Response({
+#                 'refresh': str(refresh),
+#                 'access': str(refresh.access_token),
+#             }, status=status.HTTP_200_OK)
+#             return response
         
-        return Response({
-            'detail':'Invalid Credentials'
-        }, status=status.HTTP_401_UNAUTHORIZED)
+#         return Response({
+#             'detail':'Invalid Credentials'
+#         }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ValidateTokenView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({'detail':'Token is valid'},
-                        status=status.HTTP_200_OK)
+        user = request.user
+        # roles = [role.name for role in user.roles.all()]
+        permissions = list(user.get_all_permissions())
+        return Response({
+            'detail': 'Token is valid',
+            'user_id': user.id,
+            # 'roles': roles,
+            'permissions': permissions
+        }, status=200)
 
 
 class CustomUserListView(generics.ListAPIView):
@@ -99,9 +105,37 @@ class CustomUserListView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'is_staff': ['exact'],  # Filtering by exact match for 'is_staff'
+        'is_active': ['exact'],  # Filtering by exact match for 'is_staff'
         'date_joined': ['gte', 'lte'],  # Filtering by date range (greater than, less than)
         'last_login': ['gte', 'lte', 'isnull'],  # Filtering by last login range
     }
 
 
+class UpdateNotificationPreferencesView(generics.RetrieveUpdateAPIView):
+    queryset = NotificationPreferences.objects.all()
+    serializer_class = NotificationPreferencesSerializer
+    # permission_classes = [AllowAny, IsAdminOrOwner]
 
+    def get_object(self):
+        user = self.request.user
+        pk = self.kwargs.get('pk')
+
+        if user.is_staff or user.is_superuser:
+            # Admins can access any user's preferences
+            try:
+                return NotificationPreferences.objects.get(user__pk=pk)
+            except NotificationPreferences.DoesNotExist:
+                raise PermissionDenied("Notification preferences not found for this user.")
+        else:
+            # Regular users can only access their own preferences
+            if pk and int(pk) != user.pk:
+                raise PermissionDenied("You do not have permission to access this object.")
+            try:
+                return NotificationPreferences.objects.get(user=user)
+            except NotificationPreferences.DoesNotExist:
+                raise PermissionDenied("Notification preferences not found for this user.")
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+    # throttle_classes = [BurstRateThrottle]
