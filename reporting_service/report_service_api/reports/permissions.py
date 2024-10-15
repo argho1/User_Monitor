@@ -2,6 +2,9 @@ from rest_framework.permissions import BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.core.exceptions import PermissionDenied
 from .models import Report
+import requests
+from django.conf import settings
+import jwt
 
 class HasReportAccessPermission(BasePermission):
     """
@@ -9,55 +12,50 @@ class HasReportAccessPermission(BasePermission):
     """
 
     def has_permission(self, request, view):
-        auth = JWTAuthentication()
-        print(auth)
-        try:
-            user, token = auth.authenticate(request)
-            print(token)
-        except Exception as e:
-            print(e)
-            return False
+        auth_header = request.headers.get('Authorization')
+        # Extract token
+        token = auth_header.split(' ')[1]
 
-        permissions = token.payload.get('permissions', [])
+        payload = jwt.decode(token,options={"verify_signature": False}, algorithms=['HS256'])
 
-        if 'accounts.view_customuser' in permissions:
+        permissions = payload.get('permissions', [])
+
+        # Checking if 'accounts.view_report' permission is in the token
+        if 'accounts.view_report' in permissions:
             return True
-        elif 'app_label.view_team_reports' in permissions:
-            return self._is_report_in_user_team(request, view, user)
-        elif 'app_label.view_own_reports' in permissions:
-            return self._is_report_owned_by_user(request, view, user)
         else:
-            return False
+            raise PermissionDenied("You do not have access to this resource!")
 
-    def _is_report_in_user_team(self, request, view, user):
-        """
-        Check if the report belongs to the user's team.
-        Implement the logic based on your team and report models.
-        """
-        report_id = request.data.get('report_id')  # Assuming report_id is sent in the request
-        if not report_id:
-            return False
 
-        try:
-            report = view.get_report(report_id)
-        except Report.DoesNotExist:
-            return False
 
-        # Assuming Report model has a team field and User has a team relation
-        return report.team == user.team
+class IsTokenValid(BasePermission):
+    """
+    Custom permission to check if the JWT token is valid by sending it to a third-party service.
+    """
 
-    def _is_report_owned_by_user(self, request, view, user):
-        """
-        Check if the report is owned by the user.
-        Implement the logic based on your user and report models.
-        """
-        report_id = request.data.get('report_id')  # Assuming report_id is sent in the request
-        if not report_id:
-            return False
+    def has_permission(self, request, view):
+        # Get authorization header
+        auth_header = request.headers.get('Authorization')
+        
+        # Checking Authorization header is present and is a Bearer token
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return False  # No token or wrong format, deny access
+
+        # Extract token
+        token = auth_header.split(' ')[1]
+        
+        # Validate token with the external service
+        url = settings.AUTH_VALIDATE_URL
+        headers = {'Authorization': f'Bearer {token}'}
 
         try:
-            report = view.get_report(report_id)
-        except Report.DoesNotExist:
-            return False
+            # Makeing request to the /validate endpoint
+            validation_response = requests.get(url, headers=headers)
 
-        return report.owner == user
+            if validation_response.status_code == 200:
+                return True
+            else:
+                raise PermissionDenied("Token is invalid or expired.")
+
+        except requests.exceptions.RequestException:
+            raise PermissionDenied("Error while contacting the authentication service.")
