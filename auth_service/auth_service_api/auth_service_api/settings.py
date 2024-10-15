@@ -162,5 +162,5 @@ RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT'))
 RABBITMQ_USER = os.getenv('RABBITMQ_USER')
 RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
 
-PRIVATE_KEY_PATH = open(os.getenv('PRIVATE_KEY_PATH')).read(),
+# PRIVATE_KEY_PATH = open(os.getenv('PRIVATE_KEY_PATH')).read(),
 
