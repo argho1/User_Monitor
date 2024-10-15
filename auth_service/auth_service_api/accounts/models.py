@@ -4,18 +4,25 @@ from django.db.models.signals import post_save
 from django.contrib.auth.models import AbstractUser
 
 
-# class Role(models.Model):
-#     name = models.CharField(max_length=30, unique=True)
-#     permissions = models.ManyToManyField('auth.Permission', blank=True)
+class Role(models.Model):
+    name = models.CharField(max_length=30, unique=True)
 
-#     def __str__(self):
-#         return self.name
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        permissions = [
+            ("create_report", "Can create a report"),
+            ("delete_report", "Can delete a report"),
+            ("view_report", "Can view a report"),
+        ]
+
 
 class CustomUser(AbstractUser):
     # For adding custom fields if required
     phone_number = models.CharField(unique=True, max_length=15)
     email = models.EmailField(unique=True)
-    # roles = models.ManyToManyField(Role, blank=True)
+    roles = models.ManyToManyField('Role', related_name='users')
 
     def __str__(self):
         return self.username
