@@ -22,7 +22,7 @@ def get_user_activity_data():
         return None
 
 
-def generate_pdf_report(user_data, weather_data=None):
+def generate_pdf_report(user_data):
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
@@ -36,13 +36,6 @@ def generate_pdf_report(user_data, weather_data=None):
     for user in user_data:
         pdf.drawString(50, y, f"User ID: {user['id']}, Username: {user['username']}, Last Login: {user['last_login']}")
         y -= 20
-
-    # if weather_data:
-    #     # Weather data
-    #     pdf.drawString(50, y-20, 'Weather Report')
-    #     y -= 40
-    #     pdf.drawString(50, y, f'Location: {weather_data['location']['name']}')
-    #     pdf.drawString(50, y - 20, f"Temperature: {weather_data['current']['temp_c']} °C")
 
     # Finalize the PDF
     pdf.showPage()
