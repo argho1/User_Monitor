@@ -1,20 +1,25 @@
+from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, generics
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.authentication import BasicAuthentication
+
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404
+from django.core.files.base import ContentFile
+from report_service_api.rabbitmq_publisher import RabbitMQPublisher
+
 from .models import Report
 from .serializers import ReportSerializer
-from report_service_api.rabbitmq_publisher import RabbitMQPublisher
 from .utils import get_user_activity_data, generate_pdf_report
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, Http404
-from datetime import datetime
-from django.core.files.base import ContentFile
-from .permissions import HasReportAccessPermission
+from .permissions import HasReportAccessPermission, IsTokenValid
+
+
 
 class GenerateReportView(generics.RetrieveAPIView):
-    # permission_classes = [AllowAny, HasReportAccessPermission]
-    permission_classes = [AllowAny]
+    permission_classes = [IsTokenValid, HasReportAccessPermission]
+    authentication_classes = [BasicAuthentication]
 
     def post(self, request):
 
@@ -67,7 +72,9 @@ class GenerateReportView(generics.RetrieveAPIView):
 class ReportListView(generics.ListAPIView):
     queryset = Report.objects.all()
     serializer_class = ReportSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [BasicAuthentication]
+    # permission_classes = [IsTokenValid]
+    permission_classes = [IsTokenValid, HasReportAccessPermission]
 
 
 class ReportDetailView(generics.RetrieveAPIView):
