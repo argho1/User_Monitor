@@ -1,21 +1,21 @@
 import logging
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
-from django.contrib.auth import authenticate
+
 from rest_framework import generics, status
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.throttling import UserRateThrottle
-from auth_service_api.rabbitmq_publisher import RabbitMQPublisher
-from .models import CustomUser, NotificationPreferences
-# from .utils import authenticate_with_multiple_fields
-from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer, NotificationPreferencesSerializer
 from rest_framework.exceptions import PermissionDenied
-from .permissions import IsAdminOrOwner
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .serializers import CustomTokenObtainPairSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from auth_service_api.rabbitmq_publisher import RabbitMQPublisher
+
+# from .utils import authenticate_with_multiple_fields
+from .permissions import IsAdminOrOwner
+from .models import CustomUser, NotificationPreferences
+from .serializers import RegisterSerializer, LoginSerializer, CustomUserSerializer, NotificationPreferencesSerializer, CustomTokenObtainPairSerializer
+
 
 logger = logging.getLogger(__name__)
 
