@@ -49,55 +49,6 @@ class NotificationPreferencesSerializer(serializers.ModelSerializer):
         fields = ['email_notification', 'sms_notification']
 
 
-
-# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    # identifier = serializers.CharField(required=True)  # Accepts phone, email, or username
-    # password = serializers.CharField(write_only=True, required=True)
-
-    # def validate(self, attrs):
-    #     username = attrs.get('username')
-    #     password = attrs.get('password')
-
-    #     user = authenticate(self.context['request'], username=username, password=password)
-        
-    #     if user is None:
-    #         raise serializers.ValidationError({
-    #             'detail': 'Invalid Credentials'
-    #         }, code='authorization')
-
-    #     if not user.is_active:
-    #         raise serializers.ValidationError({
-    #             'detail': 'User account is disabled.'
-    #         }, code='authorization')
-
-    #     # Generate token
-    #     refresh = self.get_token(user)
-
-    #     # Add custom claims
-    #     data = {}
-    #     data['refresh'] = str(refresh)
-    #     data['access'] = str(refresh.access_token)
-    #     data['permissions'] = list(user.get_all_permissions())
-    #     data['user_id'] = user.id
-    #     # data['username'] = user.username
-    #     # Add other fields as needed
-
-    #     return data
-
-    # @classmethod
-    # def get_token(cls, user):
-    #     token = super().get_token(user)
-
-    #     # Add custom claims
-    #     token['permissions'] = list(user.get_all_permissions())
-
-    #     return token
-
-# class RoleSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Role
-#         fields = ['id', 'name']
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
